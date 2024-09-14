@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: workflow
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y jq unzip
-
+          
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -58,14 +58,13 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_ENV
+          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
           
-  continuous-deployment:
-    name: Continuous Deployment
+  Continuous-Deployment:
     needs: build-and-push-ecr-image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v3
 
       - name: Configure AWS credentials
@@ -79,17 +78,22 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Verify IMAGE_URI
-        run: |
-          echo "IMAGE_URI=${{ env.IMAGE_URI }}"
-
       - name: Pull latest image from ECR
         run: |
-          docker pull ${{ env.IMAGE_URI }}
-
+          docker pull 533266985169.dkr.ecr.us-east-1.amazonaws.com/medicalcost:latest
+         
+      # Opcional: Detener y eliminar contenedor previo si está corriendo
+      # - name: Stop and remove previous container if running
+      #   run: |
+      #     docker ps -q --filter "name=mltest" | grep -q . && docker stop mltest && docker rm -fv mltest
+       
       - name: Run Docker Image to serve users
         run: |
-          docker run -d -p 8080:8080 --ipc="host" --name=mltest -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' -e 'AWS_REGION=${{ secrets.AWS_REGION }}' ${{ env.IMAGE_URI }}
+          docker run -d -p 8080:8080 --ipc="host" --name=mltest \
+          -e 'AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}' \
+          -e 'AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}' \
+          -e 'AWS_REGION=${{ secrets.AWS_REGION }}' \
+          533266985169.dkr.ecr.us-east-1.amazonaws.com/medicalcost:latest
 
       - name: Clean previous images and containers
         run: |
