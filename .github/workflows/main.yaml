@@ -64,5 +64,5 @@ jobs:
 
       - name: Build and push to AWS ECR
         run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/flasktest-app:latest 533266985169.dkr.ecr.us-east-1.amazonaws.com/medicalcost:latest
+          docker build -t 533266985169.dkr.ecr.us-east-1.amazonaws.com/medicalcost:latest .
           docker push 533266985169.dkr.ecr.us-east-1.amazonaws.com/medicalcost:latest
