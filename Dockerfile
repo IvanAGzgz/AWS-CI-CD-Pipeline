@@ -1,8 +1,17 @@
-FROM python:3.8-slim-buster
+# Usa la imagen oficial de Python desde Docker Hub
+FROM python:3.9-slim
+
+# Establece el directorio de trabajo
 WORKDIR /app
+
+# Copia el contenido del directorio actual al contenedor en /app
 COPY . /app
 
-RUN apt update -y && apt install awscli -y
+# Instala las dependencias especificadas en requirements.txt
+RUN pip install -r requirements.txt
 
-RUN apt-get update && apt-get install ffmpeg libsm6 libxext6 unzip -y && pip install -r requirements.txt
-CMD ["python3", "app.py"]
+# Expone el puerto 5000 para acceder desde fuera del contenedor
+EXPOSE 5000
+
+# Ejecuta app.py cuando el contenedor se inicie
+CMD ["python", "app.py"]
