@@ -7,4 +7,8 @@ xgboost
 catboost
 Flask
 pytest
+<<<<<<< HEAD
 #-e .
+=======
+#-e .
+>>>>>>> bb78af227c1f056cb584da9f7d9b5b0afb03a76d
